@@ -7,11 +7,15 @@ using namespace glm;
 void
 Scene::init()
 {
-	setGL();
+	setGL(); // OpenGL settings
+
+	// allocate memory and load resources
+	// Lights
+	// Textures
+
+	// Graphics objects (entities) of the scene
 
 	gObjects.push_back(new RGBAxes(400.0));
-	gObjects.push_back(new Ground(400.0, 400.0));
-	gObjects.push_back(new BoxOutline(200.0));
 }
 void
 Scene1::init()
@@ -82,6 +86,16 @@ Scene3::init()
 
 	RGBCube* cuboPintado = new RGBCube(200.0);
 	gObjects.push_back(cuboPintado);
+}
+
+void
+Scene4::init()
+{
+	setGL();
+
+	gObjects.push_back(new RGBAxes(400.0));
+	gObjects.push_back(new Ground(400.0, 400.0));
+	gObjects.push_back(new BoxOutline(200.0));
 }
 
 Scene::~Scene()

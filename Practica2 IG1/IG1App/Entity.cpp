@@ -164,6 +164,34 @@ void EntityWithTexture::render(const glm::mat4& modelViewMat) const
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //vuelvo a renderizar con lineas
 	}
 }
+void BoxOutline::render(const glm::mat4& modelViewMat) const
+{
+	if (mMesh != nullptr) {
+		mat4 aMat = modelViewMat * mModelMat;
+		mShader->use();
+		mShader->setUniform("modulate", mModulate);
+		upload(aMat);
+
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);//que las caras se pinten enteras
+        glEnable(GL_CULL_FACE);//activamos el culling
+
+		glCullFace(GL_BACK);//Descartamos la cara de dentro para ver la de fuera
+		mTexture->bind();//con la textura de fuera (mTexture)
+		mMesh->render();
+		mTexture->unbind();
+		
+
+		glCullFace(GL_FRONT);//Descartamos la cara de fuera para ver la de dentro
+		mTexture2->bind();//con la textura de dentro (mTexture2)
+		mMesh->render();
+		mTexture2->unbind();
+
+		//Restaura el estado a fill
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisable(GL_CULL_FACE);
+	}
+}
 void
 RGBTriangle::update() 
 {
@@ -189,7 +217,11 @@ Ground::Ground(GLdouble w, GLdouble h)
 BoxOutline::BoxOutline(GLdouble length) 
 {
 	mMesh = Mesh::generateBoxOutlineTexCor(length);
+	//cargamos la textura exterior
 	mTexture = new Texture();
 	mTexture->load("..\\assets\\images\\papelE.png");
+	//cargamos la textura interior
+	mTexture2 = new Texture();
+	mTexture2->load("..\\assets\\images\\container.jpg");
 }
 
