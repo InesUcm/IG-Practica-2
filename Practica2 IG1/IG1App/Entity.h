@@ -127,4 +127,10 @@ public:
 	void render(const glm::mat4& modelViewMat) const override;
 };
 
+class Star3D : public SingleColorEntity 
+{
+public:
+	explicit Star3D(GLdouble w, GLdouble h);
+};
+
 #endif //_H_Entities_H_

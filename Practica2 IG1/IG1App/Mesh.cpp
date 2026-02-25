@@ -370,3 +370,38 @@ Mesh* Mesh::generateRGBCubeTriangles(GLdouble length)
 
 	return mesh;
 }
+
+Mesh* Mesh::generateStar3D(GLdouble re, GLuint np, GLdouble h) {
+	Mesh* mesh = new Mesh();
+
+	mesh->mPrimitive = GL_TRIANGLE_FAN;
+	//1 vertice inical (0,0), np vertices de la estrella
+	//mismo numero de vertices internos (en la circunferencia ri) y vertices externos de la estrella (en la circunferencia re)
+	mesh->mNumVertices = 2 * np;
+	mesh->vVertices.reserve(mesh->mNumVertices);
+
+	//radio de la circunferencia interna
+	GLdouble ri = re / 2;
+
+	//vertice inicial
+	mesh->vVertices.push_back(glm::vec3(0, 0, h));
+
+	int totalPoints = 2 * np;
+	GLdouble angleStep = 360.0 / totalPoints;
+
+	for (int i = 0; i <= totalPoints; i++) {
+		// Alternamos radio: si i es par -> exterior, si i es impar -> interior
+		GLdouble r = (i % 2 == 0) ? re : ri;
+
+		// Calculamos el ángulo en radianes
+		GLdouble angle = glm::radians(90.0 + i * angleStep);
+
+		GLdouble x = r * cos(angle);
+		GLdouble y = r * sin(angle);
+
+		mesh->vVertices.push_back(glm::vec3(x, y, h));
+	}
+
+	mesh->mNumVertices = (GLuint)mesh->vVertices.size();
+	return mesh;
+}
