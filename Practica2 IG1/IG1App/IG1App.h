@@ -64,7 +64,8 @@ protected:
 	int mWinH = 600;               // window's height
 
 	static constexpr double FRAME_DURATION = 1.0 / 60.0; // 60 FPS
-	bool mUpdateEnabled = true;
+	bool mUpdateEnabled = false;
+	bool mUpdateFrame = false;
 	double mNextUpdate = 0.0;
 };
 

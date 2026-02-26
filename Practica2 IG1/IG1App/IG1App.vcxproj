@@ -74,6 +74,9 @@
     <ClInclude Include="IG1App.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Image.h" />
+    <ClInclude Include="objects2D.h" />
+    <ClInclude Include="objects3D.h" />
+    <ClInclude Include="RGBObjects.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture.h" />
@@ -86,6 +89,9 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Image.cpp" />
+    <ClCompile Include="objects2D.cpp" />
+    <ClCompile Include="objects3D.cpp" />
+    <ClCompile Include="RGBObjects.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture.cpp" />

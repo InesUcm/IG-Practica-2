@@ -78,57 +78,6 @@ public:
 	explicit RGBAxes(GLdouble l);
 };
 
-class RGBTriangle : public EntityWithColors {
-public:
-	explicit RGBTriangle(GLdouble r, GLfloat Radio);
-	virtual void update();
-};
 
-class RGBRectangle : public EntityWithColors {
-public:
-	explicit RGBRectangle(GLdouble w, GLdouble h);
-	void render(const glm::mat4& modelViewMat) const override;
-};
-
-class RegularPolygon : public SingleColorEntity
-{
-public:
-	explicit RegularPolygon(GLuint num, GLdouble r);
-};
-
-class Cube : public SingleColorEntity
-{
-public:
-	explicit Cube(GLdouble length);
-	void render(const glm::mat4& modelViewMat) const override;
-};
-class RGBCube : public EntityWithColors
-{
-public:
-	explicit RGBCube(GLdouble length);
-};
-
-class Ground : public EntityWithTexture
-{
-public:
-	explicit Ground(GLdouble w, GLdouble h);
-};
-
-class BoxOutline : public EntityWithTexture 
-{
-protected: 
-	Texture* mTexture2;
-public:
-	explicit BoxOutline(GLdouble length);
-	void render(const glm::mat4& modelViewMat) const override;
-};
-
-class Star3D : public SingleColorEntity 
-{
-public:
-	explicit Star3D(GLdouble re, GLuint np, GLdouble h);
-	void render(const glm::mat4& modelViewMat) const override;
-	void update() override;
-};
 
 #endif //_H_Entities_H_

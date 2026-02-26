@@ -1,4 +1,7 @@
 #include "Scene.h"
+#include "RGBObjects.h"
+#include "objects2D.h"
+#include "objects3D.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

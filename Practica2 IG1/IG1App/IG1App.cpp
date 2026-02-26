@@ -38,8 +38,8 @@ IG1App::run() // enters the main event processing loop
 			display();
 			mNeedsRedisplay = false;
 		}
-		double currentTime = glfwGetTime();
-		if (mUpdateEnabled) {
+		if (mUpdateEnabled || mUpdateFrame) {
+			double currentTime = glfwGetTime();
 			if (currentTime >= mNextUpdate) {
 				mScenes[mCurrentScene]->update();
 				mNeedsRedisplay = true;
@@ -50,11 +50,13 @@ IG1App::run() // enters the main event processing loop
 			if (timeout < 0.0) timeout = 0.0;
 
 			glfwWaitEventsTimeout(timeout);
+			mUpdateFrame = false;
 		}
 
 		else {
 			// Stop and wait for new events
 			glfwWaitEvents();
+			mNextUpdate = glfwGetTime();
 		}
 	}
 	destroy();
@@ -187,9 +189,10 @@ IG1App::key(unsigned int key)
 			mCamera->set2D();
 			break;
 		case 'u':
+			mUpdateFrame = true;
+			break;
+		case 'U':
 			mUpdateEnabled = !mUpdateEnabled;
-			if (mUpdateEnabled)
-				mNextUpdate = glfwGetTime() + FRAME_DURATION;
 			break;
 		default:
 			if (key >= '0' && key <= '9') {

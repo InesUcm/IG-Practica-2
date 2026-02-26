@@ -319,7 +319,7 @@ Mesh* Mesh::generateRGBCubeTriangles(GLdouble length)
 
 	mesh->vColors.reserve(mesh->mNumVertices);
 
-	//Cada cara tiene 6 vertices(dostriangulos)
+	//Cada cara tiene 6 vertices(dos triangulos)
 	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
 	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
 	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
@@ -328,6 +328,16 @@ Mesh* Mesh::generateRGBCubeTriangles(GLdouble length)
 	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
 	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
 
+
+	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
+	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
+	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
+
+	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
+	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
+	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
+
+
 	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
 	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
 	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
@@ -335,6 +345,16 @@ Mesh* Mesh::generateRGBCubeTriangles(GLdouble length)
 	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
 	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
 	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
+
+
+	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
+	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
+	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
+
+	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
+	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
+	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
+
 
 	mesh->vColors.push_back({ 0, 1, 0, 1 }); // Verde
 	mesh->vColors.push_back({ 0, 1, 0, 1 }); // Verde
@@ -344,21 +364,6 @@ Mesh* Mesh::generateRGBCubeTriangles(GLdouble length)
 	mesh->vColors.push_back({ 0, 1, 0, 1 }); // Verde
 	mesh->vColors.push_back({ 0, 1, 0, 1 }); // Verde
 
-	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
-	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
-	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
-
-	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
-	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
-	mesh->vColors.push_back({ 1, 0, 0, 1 }); // Rojo
-
-	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
-	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
-	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
-
-	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
-	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
-	mesh->vColors.push_back({ 0, 0, 1, 1 }); // Azul
 
 	mesh->vColors.push_back({ 0, 1, 0, 1 }); // Verde
 	mesh->vColors.push_back({ 0, 1, 0, 1 }); // Verde
@@ -411,4 +416,32 @@ Mesh* Mesh::generateStar3D(GLdouble re, GLuint np, GLdouble h) {
 	}
 
 	return mesh;
+}
+Mesh* Mesh::generateStar3DTexCor(GLdouble re, GLuint np, GLdouble h) 
+{
+	Mesh* m = generateStar3D(re, np, h);
+	m->vTexCoords.reserve(m->mNumVertices);
+
+	m->vTexCoords.push_back(glm::vec2(0.5, 0.5));
+
+	int totalPoints = 2 * np;
+	GLdouble angleStep = 360.0 / totalPoints;
+
+	for (int i = 0; i <= totalPoints; i++) {
+		// Para la textura, el radio debe estar normalizado entre 0 y 0.5
+		// (porque el radio total de la imagen es 0.5 desde el centro)
+		GLdouble r;
+		if (i % 2 == 0) r = 0.5;  // Puntas (borde de la imagen)
+		else r = 0.25;            // Valles (mitad de camino al centro)
+
+		GLdouble angle = glm::radians(90.0 + i * angleStep);
+
+		// Mapeo circular: centro (0.5, 0.5) + dirección * radio
+		GLfloat u = 0.5f + (GLfloat)(r * cos(angle));
+		GLfloat v = 0.5f + (GLfloat)(r * sin(angle));
+
+		m->vTexCoords.push_back(glm::vec2(u, v));
+	}
+
+	return m;
 }
