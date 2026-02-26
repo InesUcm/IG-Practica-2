@@ -82,10 +82,6 @@ class RGBTriangle : public EntityWithColors {
 public:
 	explicit RGBTriangle(GLdouble r, GLfloat Radio);
 	virtual void update();
-protected:
-	float mSpinAngle = 0.0f;  // rotación sobre sí mismo
-	float mOrbitAngle = 0.0f; //rotación sobre la circunferencia
-	float radio; //radio de la circunferencia
 };
 
 class RGBRectangle : public EntityWithColors {
@@ -130,7 +126,9 @@ public:
 class Star3D : public SingleColorEntity 
 {
 public:
-	explicit Star3D(GLdouble w, GLdouble h);
+	explicit Star3D(GLdouble re, GLuint np, GLdouble h);
+	void render(const glm::mat4& modelViewMat) const override;
+	void update() override;
 };
 
 #endif //_H_Entities_H_

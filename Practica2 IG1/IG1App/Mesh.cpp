@@ -373,35 +373,42 @@ Mesh* Mesh::generateRGBCubeTriangles(GLdouble length)
 
 Mesh* Mesh::generateStar3D(GLdouble re, GLuint np, GLdouble h) {
 	Mesh* mesh = new Mesh();
-
 	mesh->mPrimitive = GL_TRIANGLE_FAN;
-	//1 vertice inical (0,0), np vertices de la estrella
+	
+	//vertice inicial
+	mesh->vVertices.push_back(glm::vec3(0, 0, 0));
+
 	//mismo numero de vertices internos (en la circunferencia ri) y vertices externos de la estrella (en la circunferencia re)
-	mesh->mNumVertices = 2 * np;
+	int totalVertices = 2 * np;
+	//1 vertice inical (0,0, 0), np vertices internos de la estrella + np vertices externos de la estrella, 1 vertice para cerrar la estrella
+	mesh->mNumVertices = 2+ totalVertices;
 	mesh->vVertices.reserve(mesh->mNumVertices);
 
 	//radio de la circunferencia interna
 	GLdouble ri = re / 2;
 
-	//vertice inicial
-	mesh->vVertices.push_back(glm::vec3(0, 0, h));
+	//calculamos cada cuantos grados hay un vertice de la estrella: 360/2np
+	GLdouble angleStep = 360.0 / totalVertices;
 
-	int totalPoints = 2 * np;
-	GLdouble angleStep = 360.0 / totalPoints;
+	for (int i = 0; i <= totalVertices; i++) {
+		//Alternamos entre numeros pares e impares para saber en que circunefrencia va el vertice
+		GLdouble r;
+		if (i % 2 == 0) {
+			r = re; // Si el índice es par, usamos el radio exterior re
+		}
+		else {
+			r = ri; // Si el índice es impar, usamos el radio interior ri
+		}
 
-	for (int i = 0; i <= totalPoints; i++) {
-		// Alternamos radio: si i es par -> exterior, si i es impar -> interior
-		GLdouble r = (i % 2 == 0) ? re : ri;
-
-		// Calculamos el ángulo en radianes
+		// Calculamos el ángulo en radianes de cada vertice
 		GLdouble angle = glm::radians(90.0 + i * angleStep);
 
+		//Calculamos la posición del vertice según el angulo
 		GLdouble x = r * cos(angle);
 		GLdouble y = r * sin(angle);
 
 		mesh->vVertices.push_back(glm::vec3(x, y, h));
 	}
 
-	mesh->mNumVertices = (GLuint)mesh->vVertices.size();
 	return mesh;
 }

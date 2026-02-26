@@ -16,6 +16,7 @@ Scene::init()
 	// Graphics objects (entities) of the scene
 
 	gObjects.push_back(new RGBAxes(400.0));
+	gObjects.push_back(new Star3D(100.0, 8, 100.0));
 }
 void
 Scene1::init()

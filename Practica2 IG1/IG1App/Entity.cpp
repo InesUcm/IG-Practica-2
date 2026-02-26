@@ -78,7 +78,7 @@ RegularPolygon::RegularPolygon(GLuint num, GLdouble r)
 	mMesh = Mesh::generateRegularPolygon(num, r, GL_LINE_LOOP);
 }
 
-RGBTriangle::RGBTriangle(GLdouble r, GLfloat Radio): radio(Radio)
+RGBTriangle::RGBTriangle(GLdouble r, GLfloat Radio)
 {
 	mMesh = Mesh::generateRegularPolygon(3, r, GL_TRIANGLES);
 }
@@ -188,8 +188,28 @@ void BoxOutline::render(const glm::mat4& modelViewMat) const
 		mTexture2->unbind();
 
 		//Restaura el estado a fill
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDisable(GL_CULL_FACE);
+	}
+}
+void 
+Star3D::render(const glm::mat4& modelViewMat) const {
+	if (mMesh != nullptr) {
+		mShader->use();
+		mShader->setUniform("color", mColor);
+
+		//estrella 1
+		glm::mat4 aMat1 = modelViewMat * mModelMat;
+		upload(aMat1);
+		mMesh->render();
+
+		//estrella 2, rotada 180 grados
+		glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1, 0, 0));
+		glm::mat4 aMat2 = modelViewMat * mModelMat * rotateMat;
+		upload(aMat2);
+		mMesh->render();
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 }
 void
@@ -198,6 +218,16 @@ RGBTriangle::update()
 	mModelMat = rotate(mModelMat, glm::radians(-2.0f), glm::vec3{ 0,0,1 });
 
 	mModelMat = rotate(glm::mat4(1), glm::radians(1.0f), glm::vec3{ 0,0,1 }) * mModelMat;
+}
+
+void 
+Star3D::update()
+{
+	// rota sobre su eje Z
+	mModelMat = glm::rotate(mModelMat, glm::radians(1.0f), glm::vec3(0, 0, 1));
+	// rota sobre el eje Y
+	mModelMat = glm::rotate(glm::mat4(1), glm::radians(0.5f), glm::vec3(0, 1, 0)) * mModelMat;
+
 }
 
 Ground::Ground(GLdouble w, GLdouble h)
@@ -223,5 +253,9 @@ BoxOutline::BoxOutline(GLdouble length)
 	//cargamos la textura interior
 	mTexture2 = new Texture();
 	mTexture2->load("..\\assets\\images\\container.jpg");
+}
+Star3D::Star3D(GLdouble re, GLuint np, GLdouble h)
+{
+	mMesh = Mesh::generateStar3D(re, np, h);
 }
 
