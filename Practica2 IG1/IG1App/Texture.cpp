@@ -1,4 +1,5 @@
 #include "Texture.h"
+#include <vector>
 
 #include "Image.h"
 
@@ -47,14 +48,14 @@ Texture::load(const std::string& name, GLubyte alpha)
 
 	glBindTexture(GL_TEXTURE_2D, mId);
 	glTexImage2D(GL_TEXTURE_2D,
-	             level,
-	             GL_RGBA,
-	             mWidth,
-	             mHeight,
-	             border,
-	             GL_RGBA,
-	             GL_UNSIGNED_BYTE,
-	             image.data());
+		level,
+		GL_RGBA,
+		mWidth,
+		mHeight,
+		border,
+		GL_RGBA,
+		GL_UNSIGNED_BYTE,
+		image.data());
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -65,5 +66,29 @@ Texture::setWrap(GLuint wp) // GL_REPEAT, GL_CLAMP_TO_EDGE, ...
 	glBindTexture(GL_TEXTURE_2D, mId);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wp);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wp);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+// Apartado 34: carga el color buffer frontal (o trasero) como textura
+void Texture::loadColorBuffer(GLsizei width, GLsizei height, GLuint buffer)
+{
+	if (mId == 0)
+		init();
+
+	mWidth = width;
+	mHeight = height;
+
+	// Reservar array de pixeles RGBA
+	std::vector<GLubyte> pixels(width * height * 4);
+
+	glReadBuffer(buffer);
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+	glBindTexture(GL_TEXTURE_2D, mId);
+	glTexImage2D(GL_TEXTURE_2D,
+		0, GL_RGBA,
+		width, height,
+		0, GL_RGBA, GL_UNSIGNED_BYTE,
+		pixels.data());
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

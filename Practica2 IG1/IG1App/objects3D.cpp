@@ -19,17 +19,14 @@ void Cube::render(const glm::mat4& modelViewMat)const
 
 		glEnable(GL_CULL_FACE);
 
-		//La cara front se pinta como lineas
 		glCullFace(GL_FRONT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		mMesh->render();
 
-		//La cara back se pinta como puntos
 		glCullFace(GL_BACK);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 		mMesh->render();
 
-		//Restaura el estado a fill
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDisable(GL_CULL_FACE);
 	}
@@ -39,10 +36,8 @@ void Cube::render(const glm::mat4& modelViewMat)const
 BoxOutline::BoxOutline(GLdouble length)
 {
 	mMesh = Mesh::generateBoxOutlineTexCor(length);
-	//cargamos la textura exterior
 	mTexture = new Texture();
 	mTexture->load("..\\assets\\images\\papelE.png");
-	//cargamos la textura interior
 	mTexture2 = new Texture();
 	mTexture2->load("..\\assets\\images\\container.jpg");
 }
@@ -55,58 +50,125 @@ void BoxOutline::render(const glm::mat4& modelViewMat) const
 		mShader->setUniform("modulate", mModulate);
 		upload(aMat);
 
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);//que las caras se pinten enteras
-		glEnable(GL_CULL_FACE);//activamos el culling
-
-		glCullFace(GL_BACK);//Descartamos la cara de dentro para ver la de fuera
-		mTexture->bind();//con la textura de fuera (mTexture)
+		glCullFace(GL_BACK);
+		mTexture->bind();
 		mMesh->render();
 		mTexture->unbind();
 
-
-		glCullFace(GL_FRONT);//Descartamos la cara de fuera para ver la de dentro
-		mTexture2->bind();//con la textura de dentro (mTexture2)
+		glCullFace(GL_FRONT);
+		mTexture2->bind();
 		mMesh->render();
 		mTexture2->unbind();
 
-		//Restaura el estado a fill
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDisable(GL_CULL_FACE);
 	}
 }
-void
-Star3D::render(const glm::mat4& modelViewMat) const {
+
+// ------- Apartado 29: Star3D con textura -------
+
+Star3D::Star3D(GLdouble re, GLuint np, GLdouble h)
+{
+	mMesh = Mesh::generateStar3DTexCor(re, np, h);
+	mTexture = new Texture();
+	mTexture->load("..\\assets\\images\\rueda.png");
+}
+
+void Star3D::render(const glm::mat4& modelViewMat) const
+{
 	if (mMesh != nullptr) {
 		mShader->use();
-		mShader->setUniform("color", mColor);
+		mShader->setUniform("modulate", mModulate);
 
-		//estrella 1
+		if (mTexture != nullptr) mTexture->bind();
+
+		// estrella 1
 		glm::mat4 aMat1 = modelViewMat * mModelMat;
 		upload(aMat1);
 		mMesh->render();
 
-		//estrella 2, rotada 180 grados
+		// estrella 2, rotada 180 grados sobre X para quedar enfrentada
 		glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1, 0, 0));
 		glm::mat4 aMat2 = modelViewMat * mModelMat * rotateMat;
 		upload(aMat2);
 		mMesh->render();
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		if (mTexture != nullptr) mTexture->unbind();
 	}
 }
 
-void
-Star3D::update()
+void Star3D::update()
 {
-	// rota sobre su eje Z
 	mModelMat = glm::rotate(mModelMat, glm::radians(1.0f), glm::vec3(0, 0, 1));
-	// rota sobre el eje Y
 	mModelMat = glm::rotate(glm::mat4(1), glm::radians(0.5f), glm::vec3(0, 1, 0)) * mModelMat;
-
 }
 
-Star3D::Star3D(GLdouble re, GLuint np, GLdouble h)
+// ------- Apartado 32: GlassParapet -------
+
+GlassParapet::GlassParapet(GLdouble length)
 {
-	mMesh = Mesh::generateStar3D(re, np, h);
+	mMesh = Mesh::generateBoxOutlineTexCor(length);
+	mTexture = new Texture();
+	mTexture->load("..\\assets\\images\\windowV.jpg", 70);
+}
+
+void GlassParapet::render(const glm::mat4& modelViewMat) const
+{
+	if (mMesh != nullptr) {
+		mat4 aMat = modelViewMat * mModelMat;
+		mShader->use();
+		mShader->setUniform("modulate", mModulate);
+		upload(aMat);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDepthMask(GL_FALSE);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisable(GL_CULL_FACE);
+
+		if (mTexture != nullptr) mTexture->bind();
+		mMesh->render();
+		if (mTexture != nullptr) mTexture->unbind();
+
+		glDepthMask(GL_TRUE);
+		glDisable(GL_BLEND);
+	}
+}
+
+// ------- Apartado 35: Photo -------
+
+Photo::Photo(GLdouble w, GLdouble h)
+{
+	mMesh = Mesh::generateRectangleTexCor(w, h, 1, 1);
+	mTexture = new Texture();
+	// La textura se actualiza en update()
+}
+
+void Photo::update()
+{
+	GLint viewport[4];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	GLsizei w = viewport[2];
+	GLsizei h = viewport[3];
+	mTexture->loadColorBuffer(w, h, GL_FRONT);
+}
+
+void Photo::render(const glm::mat4& modelViewMat) const
+{
+	// Solo renderizamos si la textura ya fue cargada (mId != 0)
+	if (mMesh != nullptr && mTexture != nullptr) {
+		glm::mat4 aMat = modelViewMat * mModelMat;
+		mShader->use();
+		mShader->setUniform("modulate", mModulate);
+		upload(aMat);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		mTexture->bind();
+		mMesh->render();
+		mTexture->unbind();
+	}
 }

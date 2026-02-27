@@ -15,15 +15,14 @@ public:
 	Scene() = default;
 	virtual ~Scene();
 
-	Scene(const Scene& s) = delete;            // no copy constructor
-	Scene& operator=(const Scene& s) = delete; // no copy assignment
+	Scene(const Scene& s) = delete;
+	Scene& operator=(const Scene& s) = delete;
 
 	virtual void init();
 	virtual void update();
 
 	void render(Camera const& cam) const;
 
-	// load or unload scene data into the GPU
 	void load();
 	void unload();
 
@@ -32,11 +31,11 @@ protected:
 	void setGL();
 	void resetGL();
 
-	std::vector<Abs_Entity*> gObjects; // Entities (graphic objects) of the scene
+	std::vector<Abs_Entity*> gObjects;
 };
 
 class Scene1 : public Scene {
-public: 
+public:
 	void init() override;
 };
 
@@ -54,4 +53,11 @@ class Scene4 : public Scene {
 public:
 	void init() override;
 };
+
+// Apartado 37: escena final con todos los elementos
+class Scene5 : public Scene {
+public:
+	void init() override;
+};
+
 #endif //_H_Scene_H_
