@@ -107,6 +107,26 @@ Scene::~Scene()
 	destroy();
 	resetGL();
 }
+Scene1::~Scene1()
+{
+	destroy();
+	resetGL();
+}
+Scene2::~Scene2()
+{
+	destroy();
+	resetGL();
+}
+Scene3::~Scene3()
+{
+	destroy();
+	resetGL();
+}
+Scene4::~Scene4()
+{
+	destroy();
+	resetGL();
+}
 
 void
 Scene::destroy()
