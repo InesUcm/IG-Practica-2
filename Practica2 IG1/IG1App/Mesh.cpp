@@ -10,6 +10,7 @@ Mesh::Mesh()
  : mVAO(NONE)
  , mVBO(NONE)
  , mCBO(NONE)
+ , mTCO(NONE) // ARREGLO: inicializar mTCO a NONE
 {
 }
 
@@ -75,6 +76,12 @@ Mesh::unload()
 		if (mCBO != NONE) {
 			glDeleteBuffers(1, &mCBO);
 			mCBO = NONE;
+		}
+
+		// ARREGLO: liberar mTCO si fue creado
+		if (mTCO != NONE) {
+			glDeleteBuffers(1, &mTCO);
+			mTCO = NONE;
 		}
 	}
 }

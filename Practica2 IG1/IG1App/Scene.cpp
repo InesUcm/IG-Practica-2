@@ -212,8 +212,26 @@ void Scene5::init()
 	// Foto que captura el color buffer y lo muestra en un rectangulo sobre el suelo (ap. 35)
 	Photo* foto = new Photo(100.0, 75.0);
 	// Rotamos para que quede horizontal sobre el suelo y la colocamos en otra esquina
-	glm::mat4 fotoMat = glm::translate(glm::mat4(1.0f), glm::vec3(100.0f, 1.0f, 100.0f));
+	glm::mat4 fotoMat = glm::translate(glm::mat4(1.0f), glm::vec3(100.0f, 3.0f, 100.0f));
 	fotoMat = fotoMat * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	foto->setModelMat(fotoMat);
 	gObjects.push_back(foto);
+}
+
+void Scene5::render(Camera const& cam) const
+{
+	cam.upload();
+
+	// Renderizar todos los objetos excepto la foto (último en gObjects)
+	for (size_t i = 0; i + 1 < gObjects.size(); i++)
+		gObjects[i]->render(cam.viewMat());
+
+	// Capturar el buffer con lo que se acaba de renderizar
+	// (esto es el update() de la Photo — lo llamamos aquí para garantizar
+	//  que ocurre cada frame independientemente de si U está pulsado)
+	glFlush(); // asegurar que todo está en el buffer frontal
+	gObjects.back()->update();
+
+	// Ahora renderizar la foto con la captura
+	gObjects.back()->render(cam.viewMat());
 }

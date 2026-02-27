@@ -45,6 +45,7 @@ BoxOutline::BoxOutline(GLdouble length)
 void BoxOutline::render(const glm::mat4& modelViewMat) const
 {
 	if (mMesh != nullptr) {
+		glDisable(GL_BLEND); // evita heredar blending de objetos anteriores
 		mat4 aMat = modelViewMat * mModelMat;
 		mShader->use();
 		mShader->setUniform("modulate", mModulate);
@@ -63,7 +64,7 @@ void BoxOutline::render(const glm::mat4& modelViewMat) const
 		mMesh->render();
 		mTexture2->unbind();
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDisable(GL_CULL_FACE);
 	}
 }
@@ -112,7 +113,7 @@ GlassParapet::GlassParapet(GLdouble length)
 {
 	mMesh = Mesh::generateBoxOutlineTexCor(length);
 	mTexture = new Texture();
-	mTexture->load("..\\assets\\images\\windowV.jpg", 70);
+	mTexture->load("..\\assets\\images\\windowC.png", 70);
 }
 
 void GlassParapet::render(const glm::mat4& modelViewMat) const
@@ -155,12 +156,14 @@ void Photo::update()
 	GLsizei w = viewport[2];
 	GLsizei h = viewport[3];
 	mTexture->loadColorBuffer(w, h, GL_FRONT);
+	mReady = true; // ya tenemos al menos un frame capturado
 }
 
 void Photo::render(const glm::mat4& modelViewMat) const
 {
 	// Solo renderizamos si la textura ya fue cargada (mId != 0)
-	if (mMesh != nullptr && mTexture != nullptr) {
+	if (mMesh != nullptr && mTexture != nullptr && mReady) {
+		
 		glm::mat4 aMat = modelViewMat * mModelMat;
 		mShader->use();
 		mShader->setUniform("modulate", mModulate);

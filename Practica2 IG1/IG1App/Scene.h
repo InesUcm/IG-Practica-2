@@ -21,7 +21,7 @@ public:
 	virtual void init();
 	virtual void update();
 
-	void render(Camera const& cam) const;
+	virtual void render(Camera const& cam) const;
 
 	void load();
 	void unload();
@@ -62,6 +62,7 @@ public:
 class Scene5 : public Scene {
 public:
 	void init() override;
+	void render(Camera const& cam) const override;
 };
 
 #endif //_H_Scene_H_

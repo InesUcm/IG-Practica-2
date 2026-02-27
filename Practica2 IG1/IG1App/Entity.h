@@ -53,6 +53,7 @@ protected:
 	bool mModulate = false;
 public:
 	explicit EntityWithTexture();
+	~EntityWithTexture() override { delete mTexture; mTexture = nullptr; } // ARREGLO: libera mTexture
 	void render(const glm::mat4& modelViewMat) const override;
 };
 
