@@ -37,25 +37,21 @@ protected:
 class Scene1 : public Scene {
 public:
 	void init() override;
-	virtual ~Scene1();
 };
 
 class Scene2 : public Scene {
 public:
 	void init() override;
-	virtual ~Scene2();
 };
 
 class Scene3 : public Scene {
 public:
 	void init() override;
-	virtual ~Scene3();
 };
 
 class Scene4 : public Scene {
 public:
 	void init() override;
-	virtual ~Scene4();
 };
 
 // Apartado 37: escena final con todos los elementos

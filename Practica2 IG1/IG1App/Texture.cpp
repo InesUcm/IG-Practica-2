@@ -1,6 +1,6 @@
 #include "Texture.h"
 #include <vector>
-
+#include <iostream>
 #include "Image.h"
 
 Texture::~Texture()
@@ -9,9 +9,7 @@ Texture::~Texture()
 		glDeleteTextures(1, &mId);
 }
 
-void
-Texture::init()
-{
+void Texture::init() {
 	glGenTextures(1, &mId);
 	glBindTexture(GL_TEXTURE_2D, mId);
 
@@ -69,7 +67,6 @@ Texture::setWrap(GLuint wp) // GL_REPEAT, GL_CLAMP_TO_EDGE, ...
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-// Apartado 34: carga el color buffer frontal (o trasero) como textura
 void Texture::loadColorBuffer(GLsizei width, GLsizei height, GLuint buffer)
 {
 	if (mId == 0)
@@ -78,17 +75,12 @@ void Texture::loadColorBuffer(GLsizei width, GLsizei height, GLuint buffer)
 	mWidth = width;
 	mHeight = height;
 
-	// Reservar array de pixeles RGBA
-	std::vector<GLubyte> pixels(width * height * 4);
-
-	glReadBuffer(buffer);
-	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-
+	glReadBuffer(buffer); // Seleccionamos el buffer de lectura (GL_FRONT o GL_BACK)
 	glBindTexture(GL_TEXTURE_2D, mId);
-	glTexImage2D(GL_TEXTURE_2D,
-		0, GL_RGBA,
-		width, height,
-		0, GL_RGBA, GL_UNSIGNED_BYTE,
-		pixels.data());
+
+	// En lugar de glTexImage2D con datos, usamos glCopyTexImage2D
+	// Esto copia directamente lo que hay en el framebuffer a la textura
+	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, width, height, 0);
+	std::cout << "Capturando: " << width << "x" << height << " ID: " << mId << std::endl;
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

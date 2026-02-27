@@ -15,11 +15,10 @@ protected:
 	Texture* mTexture2;
 public:
 	explicit BoxOutline(GLdouble length);
-	~BoxOutline() override { delete mTexture2; mTexture2 = nullptr; } // ARREGLO: libera mTexture2
+	virtual ~BoxOutline() override;
 	void render(const glm::mat4& modelViewMat) const override;
 };
 
-// Apartado 29: Star3D ahora hereda de EntityWithTexture
 class Star3D : public EntityWithTexture
 {
 public:
@@ -28,7 +27,6 @@ public:
 	void update() override;
 };
 
-// Apartado 32: cristalera con textura traslucida (blending)
 class GlassParapet : public EntityWithTexture
 {
 public:
@@ -36,7 +34,6 @@ public:
 	void render(const glm::mat4& modelViewMat) const override;
 };
 
-// Apartado 35: foto que captura el color buffer
 class Photo : public EntityWithTexture
 {
 	public:

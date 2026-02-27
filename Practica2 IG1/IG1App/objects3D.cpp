@@ -1,6 +1,7 @@
 #include "objects3D.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 using namespace glm;
 
 
@@ -40,6 +41,12 @@ BoxOutline::BoxOutline(GLdouble length)
 	mTexture->load("..\\assets\\images\\papelE.png");
 	mTexture2 = new Texture();
 	mTexture2->load("..\\assets\\images\\container.jpg");
+}
+
+BoxOutline::~BoxOutline() {
+	//borramos la textura de dentro
+	delete mTexture2;
+	mTexture2 = nullptr;
 }
 
 void BoxOutline::render(const glm::mat4& modelViewMat) const
@@ -83,7 +90,7 @@ void Star3D::render(const glm::mat4& modelViewMat) const
 	if (mMesh != nullptr) {
 		mShader->use();
 		mShader->setUniform("modulate", mModulate);
-
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		if (mTexture != nullptr) mTexture->bind();
 
 		// estrella 1
@@ -113,7 +120,7 @@ GlassParapet::GlassParapet(GLdouble length)
 {
 	mMesh = Mesh::generateBoxOutlineTexCor(length);
 	mTexture = new Texture();
-	mTexture->load("..\\assets\\images\\windowC.png", 70);
+	mTexture->load("..\\assets\\images\\windowC.png", 130);
 }
 
 void GlassParapet::render(const glm::mat4& modelViewMat) const
@@ -140,12 +147,13 @@ void GlassParapet::render(const glm::mat4& modelViewMat) const
 	}
 }
 
-// ------- Apartado 35: Photo -------
 
 Photo::Photo(GLdouble w, GLdouble h)
 {
+	std::cout << "Objeto Photo creado" << std::endl;
 	mMesh = Mesh::generateRectangleTexCor(w, h, 1, 1);
 	mTexture = new Texture();
+	mModulate = false;
 	// La textura se actualiza en update()
 }
 
@@ -166,11 +174,13 @@ void Photo::render(const glm::mat4& modelViewMat) const
 		
 		glm::mat4 aMat = modelViewMat * mModelMat;
 		mShader->use();
-		mShader->setUniform("modulate", mModulate);
-		upload(aMat);
+		mShader->setUniform("modulate", false);
+		mShader->setUniform("color", glm::vec4(1.0f)); // Blanco puro
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		upload(modelViewMat * mModelMat);
+
 		mTexture->bind();
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		mMesh->render();
 		mTexture->unbind();
 	}

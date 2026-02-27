@@ -73,6 +73,11 @@ EntityWithTexture::EntityWithTexture()
 {
 	mShader = Shader::get("texture");
 }
+EntityWithTexture::~EntityWithTexture()
+{
+	delete mTexture;
+	mTexture = nullptr;
+}
 
 void EntityWithTexture::render(const glm::mat4& modelViewMat) const
 {

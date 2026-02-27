@@ -31,7 +31,6 @@ Scene1::init()
 	// Textures
 
 	// Graphics objects (entities) of the scene
-
 	gObjects.push_back(new RGBAxes(400.0));
 	RegularPolygon* hexagono = new RegularPolygon(6, 200.0);//hexagono
 	glm::vec4 magenta(255.0, 0.0, 255.0, 1.0);
@@ -102,27 +101,43 @@ Scene4::init()
 	gObjects.push_back(new BoxOutline(200.0));
 }
 
+void 
+Scene5::init()
+{
+	setGL();
+
+	// Ejes de referencia
+	gObjects.push_back(new RGBAxes(400.0));
+
+	// Suelo (400x400) con textura baldosa embaldosada 4x4
+	gObjects.push_back(new Ground(400.0, 400.0));
+
+	// Contorno de caja con dos texturas (exterior/interior), colocada en una esquina del suelo
+	BoxOutline* caja = new BoxOutline(100.0);
+	caja->setModelMat(glm::translate(glm::mat4(1.0f), glm::vec3(-150.0f, 50.0f, -150.0f)));
+	gObjects.push_back(caja);
+
+	// Estrella 3D dentro de la caja (ap. 29: con textura rueda.png)
+	Star3D* estrella = new Star3D(40.0, 8, 40.0);
+	estrella->setModelMat(glm::translate(glm::mat4(1.0f), glm::vec3(-150.0f, 50.0f, -150.0f)));
+	gObjects.push_back(estrella);
+
+	// Cristalera (GlassParapet) rodeando el suelo (ap. 32)
+	GlassParapet* cristalera = new GlassParapet(400.0);
+	// La cristalera se coloca a nivel del suelo
+	cristalera->setModelMat(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)));
+	gObjects.push_back(cristalera);
+
+	// Foto que captura el color buffer y lo muestra en un rectangulo sobre el suelo (ap. 35)
+	Photo* foto = new Photo(100.0, 75.0);
+	// Rotamos para que quede horizontal sobre el suelo y la colocamos en otra esquina
+	glm::mat4 fotoMat = glm::translate(glm::mat4(1.0f), glm::vec3(100.0f, 1.0f, 100.0f));
+	fotoMat = fotoMat * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	foto->setModelMat(fotoMat);
+	gObjects.push_back(foto);
+}
+
 Scene::~Scene()
-{
-	destroy();
-	resetGL();
-}
-Scene1::~Scene1()
-{
-	destroy();
-	resetGL();
-}
-Scene2::~Scene2()
-{
-	destroy();
-	resetGL();
-}
-Scene3::~Scene3()
-{
-	destroy();
-	resetGL();
-}
-Scene4::~Scene4()
 {
 	destroy();
 	resetGL();
@@ -180,42 +195,6 @@ Scene::update()
 {
 	for (Abs_Entity* obj : gObjects)
 		obj->update();
-}
-
-// Apartado 37: escena con suelo, caja, estrella, cristalera y foto
-void Scene5::init()
-{
-	setGL();
-
-	// Ejes de referencia
-	gObjects.push_back(new RGBAxes(400.0));
-
-	// Suelo (400x400) con textura baldosa embaldosada 4x4
-	gObjects.push_back(new Ground(400.0, 400.0));
-
-	// Contorno de caja con dos texturas (exterior/interior), colocada en una esquina del suelo
-	BoxOutline* caja = new BoxOutline(100.0);
-	caja->setModelMat(glm::translate(glm::mat4(1.0f), glm::vec3(-150.0f, 50.0f, -150.0f)));
-	gObjects.push_back(caja);
-
-	// Estrella 3D dentro de la caja (ap. 29: con textura rueda.png)
-	Star3D* estrella = new Star3D(40.0, 8, 40.0);
-	estrella->setModelMat(glm::translate(glm::mat4(1.0f), glm::vec3(-150.0f, 50.0f, -150.0f)));
-	gObjects.push_back(estrella);
-
-	// Cristalera (GlassParapet) rodeando el suelo (ap. 32)
-	GlassParapet* cristalera = new GlassParapet(400.0);
-	// La cristalera se coloca a nivel del suelo
-	cristalera->setModelMat(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)));
-	gObjects.push_back(cristalera);
-
-	// Foto que captura el color buffer y lo muestra en un rectangulo sobre el suelo (ap. 35)
-	Photo* foto = new Photo(100.0, 75.0);
-	// Rotamos para que quede horizontal sobre el suelo y la colocamos en otra esquina
-	glm::mat4 fotoMat = glm::translate(glm::mat4(1.0f), glm::vec3(100.0f, 3.0f, 100.0f));
-	fotoMat = fotoMat * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	foto->setModelMat(fotoMat);
-	gObjects.push_back(foto);
 }
 
 void Scene5::render(Camera const& cam) const
