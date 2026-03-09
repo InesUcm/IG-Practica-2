@@ -52,12 +52,6 @@ public:
 class Scene4 : public Scene {
 public:
 	void init() override;
-};
-
-// Apartado 37: escena final con todos los elementos
-class Scene5 : public Scene {
-public:
-	void init() override;
 	void render(Camera const& cam) const override;
 };
 

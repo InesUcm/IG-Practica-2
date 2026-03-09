@@ -192,9 +192,12 @@ Mesh* Mesh::generateRGBRectangle(GLdouble w, GLdouble h)
 
 	return mesh;
 }
-Mesh* Mesh::generateRectangleTexCor(GLdouble w, GLdouble h, GLuint rw, GLuint rh) {
+Mesh* Mesh::generateRectangleTexCor(GLdouble w, GLdouble h, GLuint rw, GLuint rh) 
+{
 	Mesh* m = generateRectangle(w, h);
+
 	m->vTexCoords.reserve(m->mNumVertices);
+
 	m->vTexCoords.emplace_back(0, rh);
 	m->vTexCoords.emplace_back(0, 0);
 	m->vTexCoords.emplace_back(rw, rh);
@@ -203,7 +206,8 @@ Mesh* Mesh::generateRectangleTexCor(GLdouble w, GLdouble h, GLuint rw, GLuint rh
 	return m;
 }
 
-Mesh* Mesh::generateCube(GLdouble length) {
+Mesh* Mesh::generateCube(GLdouble length) 
+{
 	Mesh* mesh = new Mesh();
 
 	mesh->mPrimitive = GL_TRIANGLES;
@@ -299,6 +303,7 @@ Mesh* Mesh::generateBoxOutline(GLdouble length)
 
 	return mesh;
 }
+
 Mesh* Mesh::generateBoxOutlineTexCor(GLdouble length) 
 {
 	Mesh* m = generateBoxOutline(length);
@@ -309,17 +314,18 @@ Mesh* Mesh::generateBoxOutlineTexCor(GLdouble length)
 	m->vTexCoords.push_back(glm::vec2(1.0, 1.0));
 	m->vTexCoords.push_back(glm::vec2(1.0, 0.0)); 
 
-	m->vTexCoords.push_back(glm::vec2(2.0, 1.0)); 
-	m->vTexCoords.push_back(glm::vec2(2.0, 0.0)); 
+	m->vTexCoords.push_back(glm::vec2(2.0, 1.0));
+	m->vTexCoords.push_back(glm::vec2(2.0, 0.0));
 
-	m->vTexCoords.push_back(glm::vec2(3.0, 1.0)); 
-	m->vTexCoords.push_back(glm::vec2(3.0, 0.0)); 
+	m->vTexCoords.push_back(glm::vec2(3.0, 1.0));
+	m->vTexCoords.push_back(glm::vec2(3.0, 0.0));
 
-	m->vTexCoords.push_back(glm::vec2(4.0, 1.0)); 
-	m->vTexCoords.push_back(glm::vec2(4.0, 0.0)); 
+	m->vTexCoords.push_back(glm::vec2(4.0, 1.0));
+	m->vTexCoords.push_back(glm::vec2(4.0, 0.0));
 
 	return m;
 }
+
 Mesh* Mesh::generateRGBCubeTriangles(GLdouble length) 
 {
 	Mesh* mesh = generateCube(length);
@@ -435,7 +441,7 @@ Mesh* Mesh::generateStar3DTexCor(GLdouble re, GLuint np, GLdouble h)
 	GLdouble angleStep = 360.0 / totalPoints;
 
 	for (int i = 0; i <= totalPoints; i++) {
-		// Para la textura, el radio debe estar normalizado entre 0 y 0.5
+		// Para la textura, el radio debe estar normalizado entre 0 y 0.5k mj
 		// (porque el radio total de la imagen es 0.5 desde el centro)
 		GLdouble r;
 		if (i % 2 == 0) r = 0.5;  // Puntas (borde de la imagen)

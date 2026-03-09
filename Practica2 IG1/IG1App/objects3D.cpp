@@ -114,13 +114,11 @@ void Star3D::update()
 	mModelMat = glm::rotate(glm::mat4(1), glm::radians(0.5f), glm::vec3(0, 1, 0)) * mModelMat;
 }
 
-// ------- Apartado 32: GlassParapet -------
-
 GlassParapet::GlassParapet(GLdouble length)
 {
 	mMesh = Mesh::generateBoxOutlineTexCor(length);
 	mTexture = new Texture();
-	mTexture->load("..\\assets\\images\\windowC.png", 130);
+	mTexture->load("..\\assets\\images\\windowC.png", 200); // 255=opaco, 0=transparente
 }
 
 void GlassParapet::render(const glm::mat4& modelViewMat) const
@@ -147,41 +145,3 @@ void GlassParapet::render(const glm::mat4& modelViewMat) const
 	}
 }
 
-
-Photo::Photo(GLdouble w, GLdouble h)
-{
-	std::cout << "Objeto Photo creado" << std::endl;
-	mMesh = Mesh::generateRectangleTexCor(w, h, 1, 1);
-	mTexture = new Texture();
-	mModulate = false;
-	// La textura se actualiza en update()
-}
-
-void Photo::update()
-{
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
-	GLsizei w = viewport[2];
-	GLsizei h = viewport[3];
-	mTexture->loadColorBuffer(w, h, GL_FRONT);
-	mReady = true; // ya tenemos al menos un frame capturado
-}
-
-void Photo::render(const glm::mat4& modelViewMat) const
-{
-	// Solo renderizamos si la textura ya fue cargada (mId != 0)
-	if (mMesh != nullptr && mTexture != nullptr && mReady) {
-		
-		glm::mat4 aMat = modelViewMat * mModelMat;
-		mShader->use();
-		mShader->setUniform("modulate", false);
-		mShader->setUniform("color", glm::vec4(1.0f)); // Blanco puro
-
-		upload(modelViewMat * mModelMat);
-
-		mTexture->bind();
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		mMesh->render();
-		mTexture->unbind();
-	}
-}
