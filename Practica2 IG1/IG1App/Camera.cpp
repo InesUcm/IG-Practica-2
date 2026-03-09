@@ -1,4 +1,4 @@
-#include "Shader.h"
+﻿#include "Shader.h"
 #include "Camera.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -6,71 +6,58 @@
 
 using namespace glm;
 
+// Inicializa el área visible a partir del tamaño del viewport y calcula la PM.
 Camera::Camera(Viewport* vp)
-  : mViewMat(1.0)
-  , mProjMat(1.0)
-  , xRight(vp->width() / 2.0)
-  , xLeft(-xRight)
-  , yTop(vp->height() / 2.0)
-  , yBot(-yTop)
-  , mViewPort(vp)
+	: mViewMat(1.0)
+	, mProjMat(1.0)
+	, xRight(vp->width() / 2.0)
+	, xLeft(-xRight)
+	, yTop(vp->height() / 2.0)
+	, yBot(-yTop)
+	, mViewPort(vp)
 {
 	setPM();
 }
 
-void
-Camera::uploadVM() const
+// ── View matrix ───────────────────────────────────────────────────────────────
+
+// Sube mViewMat como uniform "modelView" a todos los shaders activos.
+void Camera::uploadVM() const { Shader::setUniform4All("modelView", mViewMat); }
+
+// Recalcula mViewMat usando glm::lookAt(ojo, objetivo, arriba).
+void Camera::setVM()
 {
-	Shader::setUniform4All("modelView", mViewMat);
+	mViewMat = lookAt(mEye, mLook, mUp);
 }
 
-void
-Camera::setVM()
+// Vista 2D: cámara en el eje Z mirando al origen, sin rotación.
+void Camera::set2D()
 {
-	mViewMat = lookAt(mEye, mLook, mUp); // glm::lookAt defines the view matrix
-}
-
-void
-Camera::set2D()
-{
-	mEye = {0, 0, 500};
-	mLook = {0, 0, 0};
-	mUp = {0, 1, 0};
+	mEye = { 0, 0, 500 };
+	mLook = { 0, 0, 0 };
+	mUp = { 0, 1, 0 };
 	setVM();
 }
 
-void
-Camera::set3D()
+// Vista 3D: cámara en posición isométrica mirando ligeramente hacia arriba.
+void Camera::set3D()
 {
-	mEye = {500, 500, 500};
-	mLook = {0, 10, 0};
-	mUp = {0, 1, 0};
+	mEye = { 500, 500, 500 };
+	mLook = { 0, 10, 0 };
+	mUp = { 0, 1, 0 };
 	setVM();
 }
 
-void
-Camera::pitch(GLfloat a)
-{
-	mViewMat = rotate(mViewMat, glm::radians(a), glm::vec3(1.0, 0, 0));
-	// glm::rotate returns mViewMat * rotationMatrix
-}
+// Rotaciones: modifican mViewMat directamente (giro sobre ejes locales).
+void Camera::pitch(GLfloat a) { mViewMat = rotate(mViewMat, radians(a), vec3(1.0f, 0.0f, 0.0f)); }
+void Camera::yaw(GLfloat a) { mViewMat = rotate(mViewMat, radians(a), vec3(0.0f, 1.0f, 0.0f)); }
+void Camera::roll(GLfloat a) { mViewMat = rotate(mViewMat, radians(a), vec3(0.0f, 0.0f, 1.0f)); }
 
-void
-Camera::yaw(GLfloat a)
-{
-	mViewMat = rotate(mViewMat, glm::radians(a), glm::vec3(0, 1.0, 0));
-	// glm::rotate returns mViewMat * rotationMatrix
-}
+// ── Projection matrix ─────────────────────────────────────────────────────────
 
-void
-Camera::roll(GLfloat a)
-{
-	mViewMat = rotate(mViewMat, glm::radians(a), glm::vec3(0, 0, 1.0));
-	// glm::rotate returns mViewMat * rotationMatrix
-}
-
-void
-Camera::setSize(GLdouble xw, GLdouble yh)
+// Actualiza los límites del área visible y recalcula la PM.
+// Se llama al redimensionar la ventana (IG1App::resize).
+void Camera::setSize(GLdouble xw, GLdouble yh)
 {
 	xRight = xw / 2.0;
 	xLeft = -xRight;
@@ -79,37 +66,37 @@ Camera::setSize(GLdouble xw, GLdouble yh)
 	setPM();
 }
 
-void
-Camera::setScale(GLdouble s)
+// Modifica el factor de escala para hacer zoom in/out y recalcula la PM.
+void Camera::setScale(GLdouble s)
 {
 	mScaleFact -= s;
-	if (mScaleFact < 0)
-		mScaleFact = 0.01;
+	if (mScaleFact < 0.0) mScaleFact = 0.01; // evitar escala negativa o cero
 	setPM();
 }
 
-void
-Camera::setPM()
+// Recalcula la projection matrix. Solo implementa ortogonal por ahora.
+// glm::ortho recibe (left, right, bottom, top, near, far).
+void Camera::setPM()
 {
-	if (bOrto) { //  if orthogonal projection
-		mProjMat = ortho(xLeft * mScaleFact,
-		                 xRight * mScaleFact,
-		                 yBot * mScaleFact,
-		                 yTop * mScaleFact,
-		                 mNearVal,
-		                 mFarVal);
-		// glm::ortho defines the orthogonal projection matrix
+	if (bOrto) {
+		mProjMat = ortho(
+			xLeft * mScaleFact,
+			xRight * mScaleFact,
+			yBot * mScaleFact,
+			yTop * mScaleFact,
+			mNearVal,
+			mFarVal);
 	}
 }
 
-void
-Camera::uploadPM() const
-{
-	Shader::setUniform4All("projection", mProjMat);
-}
+// Sube mProjMat como uniform "projection" a todos los shaders activos.
+void Camera::uploadPM() const { Shader::setUniform4All("projection", mProjMat); }
 
-void
-Camera::upload() const
+// ── Upload completo ───────────────────────────────────────────────────────────
+
+// Sube viewport + view matrix + projection matrix a la GPU de una sola vez.
+// Se llama al inicio de cada render.
+void Camera::upload() const
 {
 	mViewPort->upload();
 	uploadVM();

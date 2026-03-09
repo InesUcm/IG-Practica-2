@@ -1,4 +1,4 @@
-#include <fstream>
+﻿#include <fstream>
 #include <map>
 #include <memory>
 #include <filesystem>
@@ -11,42 +11,43 @@
 
 using namespace std;
 
-// Shader factory
-map<string, unique_ptr<Shader>> shaders;
+// Se usa un puntero en lugar de un objeto estático directo.
+// Así freeAll() puede hacer `delete shaders` y liberar COMPLETAMENTE
+// el mapa del heap antes de que el detector CRT de MSVC haga su snapshot,
+// eliminando los falsos leaks del nodo centinela interno del std::map.
+static map<string, unique_ptr<Shader>>* shaders = nullptr;
+
 constexpr const char* SHADERS_ROOT = "../assets/shaders/";
 
+// Compila vertex + fragment (y geometry si existe) y los enlaza en un programa.
 Shader::Shader(const string& name)
 {
 	GLuint vertex, fragment;
 
-	// Name can be either a plain identifier or a colon-separated name pair
+	// Separar nombres de vertex y fragment si se usa el formato "vtx:frag".
 	string vertexName = name, fragmentName = name;
-
 	if (auto pos = name.find(':'); pos != string::npos) {
 		vertexName = name.substr(0, pos);
 		fragmentName = name.substr(pos + 1);
 	}
 
-	// Compile vertex shader
 	buildShader(vertex, GL_VERTEX_SHADER, SHADERS_ROOT + vertexName + "_vertex.glsl");
-	// Compile fragment shader
 	buildShader(fragment, GL_FRAGMENT_SHADER, SHADERS_ROOT + fragmentName + "_fragment.glsl");
 
-	// Link shader program
 	mProgram = glCreateProgram();
-
 	glAttachShader(mProgram, vertex);
 	glAttachShader(mProgram, fragment);
 
-	// Compile geometry shader (it it exists)
-	if (std::filesystem::exists(SHADERS_ROOT + name + "_geometry.glsl")) {
+	// El geometry shader es opcional: solo se carga si el fichero existe.
+	string geometryPath = SHADERS_ROOT + name + "_geometry.glsl";
+	if (filesystem::exists(geometryPath)) {
 		GLuint geometry;
-		buildShader(geometry, GL_GEOMETRY_SHADER, SHADERS_ROOT + name + "_geometry.glsl");
+		buildShader(geometry, GL_GEOMETRY_SHADER, geometryPath);
 		glAttachShader(mProgram, geometry);
 	}
 
 	glLinkProgram(mProgram);
-
+	// Los objetos de shader individuales ya no son necesarios tras el enlazado.
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 }
@@ -56,88 +57,99 @@ Shader::~Shader()
 	glDeleteProgram(mProgram);
 }
 
+// Lee el fichero GLSL, lo compila y guarda el ID en 'shader'.
+// Devuelve false si el fichero no existe; lanza si falla la compilación.
 bool
-Shader::buildShader(GLuint& shader, GLuint type, const std::string& filename)
+Shader::buildShader(GLuint& shader, GLuint type, const string& filename)
 {
 	ifstream source(filename);
+	if (!source.is_open())
+		return false;
 
-	if (source.is_open()) {
-		// Read the buffer in memory
-		string buffer(istreambuf_iterator<char>(source), {});
-		const char* bufferp = buffer.data();
+	string buffer(istreambuf_iterator<char>(source), {});
+	const char* bufferp = buffer.data();
 
-		shader = glCreateShader(type);
-		glShaderSource(shader, 1, &bufferp, NULL);
-		glCompileShader(shader);
+	shader = glCreateShader(type);
+	glShaderSource(shader, 1, &bufferp, nullptr);
+	glCompileShader(shader);
 
-		// Check if everything went fine
-		int compileStatus;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+	int compileStatus;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
+	if (compileStatus == GL_FALSE)
+		throw logic_error("Error al compilar el shader: " + filename);
 
-		if (compileStatus == GL_FALSE)
-			throw std::logic_error("error while compiling shader " + filename);
-
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
-void
-Shader::use()
-{
-	glUseProgram(mProgram);
-}
+// Activa este programa para el siguiente draw call.
+void Shader::use() { glUseProgram(mProgram); }
 
-void
-Shader::setUniform(const string& name, bool value)
+// ── setUniform — sobrecargado para cada tipo de dato uniform ─────────────────
+
+void Shader::setUniform(const string& name, bool value)
 {
 	glUniform1i(glGetUniformLocation(mProgram, name.c_str()), value);
 }
 
-void
-Shader::setUniform(const string& name, float value)
+void Shader::setUniform(const string& name, float value)
 {
 	glUniform1f(glGetUniformLocation(mProgram, name.c_str()), value);
 }
 
-void
-Shader::setUniform(const string& name, const glm::vec3& value)
+void Shader::setUniform(const string& name, const glm::vec3& value)
 {
 	glUniform3f(glGetUniformLocation(mProgram, name.c_str()), value.r, value.g, value.b);
 }
 
-void
-Shader::setUniform(const string& name, const glm::vec4& value)
+void Shader::setUniform(const string& name, const glm::vec4& value)
 {
 	glUniform4f(glGetUniformLocation(mProgram, name.c_str()), value.r, value.g, value.b, value.a);
 }
 
-void
-Shader::setUniform(const string& name, const glm::mat4& value)
+void Shader::setUniform(const string& name, const glm::mat4& value)
 {
 	glUniformMatrix4fv(glGetUniformLocation(mProgram, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
+// ── Métodos estáticos de la caché ─────────────────────────────────────────────
+
+// Devuelve el shader con ese nombre; lo crea y cachea si no existe.
 Shader*
 Shader::get(const string& name)
 {
-	auto it = shaders.find(name);
+	// Crear el mapa la primera vez que se solicita un shader.
+	if (shaders == nullptr)
+		shaders = new map<string, unique_ptr<Shader>>();
 
-	if (it != shaders.end())
+	auto it = shaders->find(name);
+	if (it != shaders->end())
 		return it->second.get();
 
+	// Primera vez: compilar y almacenar en la caché.
 	Shader* shader = new Shader(name);
-	shaders[name] = unique_ptr<Shader>(shader);
-
+	(*shaders)[name] = unique_ptr<Shader>(shader);
 	return shader;
 }
 
+// Envía el mismo uniform mat4 a todos los shaders activos.
+// Se usa principalmente para actualizar la matriz de proyección.
 void
 Shader::setUniform4All(const string& name, const glm::mat4& value)
 {
-	for (const auto& [_, shader] : shaders) {
+	if (shaders == nullptr) return;
+	for (const auto& [_, shader] : *shaders) {
 		shader->use();
 		shader->setUniform(name, value);
 	}
+}
+
+// Destruye completamente la caché de shaders y libera su memoria del heap.
+// Al usar `delete shaders`, el objeto map desaparece totalmente antes de
+// que el CRT de MSVC ejecute _CrtDumpMemoryLeaks(), eliminando los leaks.
+// Llamar en IG1App::destroy() antes de glfwTerminate().
+void
+Shader::freeAll()
+{
+	delete shaders; // destruye map + unique_ptrs + ~Shader() + glDeleteProgram
+	shaders = nullptr;
 }
