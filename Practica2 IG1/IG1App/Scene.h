@@ -53,6 +53,14 @@ class Scene4 : public Scene {
 public:
 	void init() override;
 	void render(Camera const& cam) const override;
+	//sobrescribimos update para que no se acyualice la foto en cada frame
+	void update() override;
+	//booleano para saber si la foto ya ha sido capturada 
+	//false = ya ha sido capturada, no hay que capturarla ora vez
+	//true = la escena se ha movido y hay que capturar la foto otra vez
+	mutable bool mCaptureNext = false;
+	//metodo para indicar que hay que capturar la foto otra vez
+	void setCapture() { mCaptureNext = true; }
 };
 
 #endif //_H_Scene_H_

@@ -3,16 +3,14 @@
 #include <iostream>
 #include "Image.h"
 
-// Libera el objeto de textura en la GPU si fue creado.
+// Libera el objeto de textura en la GPU si fue creado
 Texture::~Texture()
 {
 	if (mId != 0)
 		glDeleteTextures(1, &mId);
 }
 
-// Genera el objeto de textura en la GPU y configura los parámetros por defecto:
-//   - Filtro bilineal (GL_LINEAR) para magnification y minification.
-//   - Repetición en ambos ejes UV (GL_REPEAT) para mosaicos/tiles.
+// Genera el objeto de textura en la GPU y configura los parámetros por defecto
 void Texture::init()
 {
 	glGenTextures(1, &mId);
@@ -24,15 +22,13 @@ void Texture::init()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-// Activa esta textura para los siguientes draw calls.
+// Activa esta textura para los siguientes draw calls
 void Texture::bind()
 {
 	glBindTexture(GL_TEXTURE_2D, mId);
 }
 
-// Carga una imagen desde fichero y la sube a la GPU como textura RGBA.
-// Si alpha < 255, se sobreescribe el canal alfa de todos los píxeles con ese valor
-// (útil para texturas con transparencia uniforme, como el cristal).
+// Carga una imagen desde fichero y la sube a la GPU como textura RGBA
 void Texture::load(const std::string& name, GLubyte alpha)
 {
 	if (mId == 0) init();
@@ -47,8 +43,8 @@ void Texture::load(const std::string& name, GLubyte alpha)
 	mHeight = image.height();
 
 	glBindTexture(GL_TEXTURE_2D, mId);
-	// glTexImage2D sube los datos de la imagen a la GPU.
-	// Nivel 0 = imagen base (sin mipmaps), sin borde, formato RGBA.
+	// glTexImage2D sube los datos de la imagen a la GPU
+	// Nivel 0 = imagen base (sin mipmaps), sin borde, formato RGBA
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
 		mWidth, mHeight, 0,
 		GL_RGBA, GL_UNSIGNED_BYTE,
@@ -57,8 +53,7 @@ void Texture::load(const std::string& name, GLubyte alpha)
 	glBindTexture(GL_TEXTURE_2D, 0); // desvincular para no afectar otras operaciones
 }
 
-// Configura el modo de repetición/clamping de la textura en ambos ejes UV.
-// Valores típicos: GL_REPEAT, GL_CLAMP_TO_EDGE, GL_MIRRORED_REPEAT.
+// Configura el modo de repetición/clamping de la textura en ambos ejes UV
 void Texture::setWrap(GLuint wp)
 {
 	glBindTexture(GL_TEXTURE_2D, mId);
@@ -67,9 +62,7 @@ void Texture::setWrap(GLuint wp)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-// Carga el color buffer del framebuffer como textura 2D (apartado 34).
-// Se usa para hacer la "foto": captura lo que ya está pintado en pantalla.
-// glCopyTexImage2D es más eficiente que leer a CPU y volver a subir.
+// Carga el color buffer del framebuffer como textura 2D
 void Texture::loadColorBuffer(GLsizei width, GLsizei height, GLuint buffer)
 {
 	if (mId == 0) init();
@@ -77,7 +70,7 @@ void Texture::loadColorBuffer(GLsizei width, GLsizei height, GLuint buffer)
 	mWidth = width;
 	mHeight = height;
 
-	glReadBuffer(buffer);             // seleccionar GL_FRONT o GL_BACK
+	glReadBuffer(buffer);
 	glBindTexture(GL_TEXTURE_2D, mId);
 	// Copia el rectángulo (0,0,width,height) del framebuffer a la textura.
 	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, width, height, 0);

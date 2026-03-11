@@ -11,10 +11,6 @@
 
 using namespace std;
 
-// Se usa un puntero en lugar de un objeto estático directo.
-// Así freeAll() puede hacer `delete shaders` y liberar COMPLETAMENTE
-// el mapa del heap antes de que el detector CRT de MSVC haga su snapshot,
-// eliminando los falsos leaks del nodo centinela interno del std::map.
 static map<string, unique_ptr<Shader>>* shaders = nullptr;
 
 constexpr const char* SHADERS_ROOT = "../assets/shaders/";
@@ -39,10 +35,10 @@ Shader::Shader(const string& name)
 	glAttachShader(mProgram, fragment);
 
 	// El geometry shader es opcional: solo se carga si el fichero existe.
-	string geometryPath = SHADERS_ROOT + name + "_geometry.glsl";
-	if (filesystem::exists(geometryPath)) {
+	if (std::filesystem::exists(SHADERS_ROOT + name + "_geometry.glsl")) 
+	{
 		GLuint geometry;
-		buildShader(geometry, GL_GEOMETRY_SHADER, geometryPath);
+		buildShader(geometry, GL_GEOMETRY_SHADER, SHADERS_ROOT + name + "_geometry.glsl");
 		glAttachShader(mProgram, geometry);
 	}
 
@@ -57,8 +53,7 @@ Shader::~Shader()
 	glDeleteProgram(mProgram);
 }
 
-// Lee el fichero GLSL, lo compila y guarda el ID en 'shader'.
-// Devuelve false si el fichero no existe; lanza si falla la compilación.
+// Lee el fichero GLSL, lo compila y guarda el ID en 'shader'
 bool
 Shader::buildShader(GLuint& shader, GLuint type, const string& filename)
 {
@@ -83,8 +78,6 @@ Shader::buildShader(GLuint& shader, GLuint type, const string& filename)
 
 // Activa este programa para el siguiente draw call.
 void Shader::use() { glUseProgram(mProgram); }
-
-// ── setUniform — sobrecargado para cada tipo de dato uniform ─────────────────
 
 void Shader::setUniform(const string& name, bool value)
 {
@@ -111,13 +104,11 @@ void Shader::setUniform(const string& name, const glm::mat4& value)
 	glUniformMatrix4fv(glGetUniformLocation(mProgram, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-// ── Métodos estáticos de la caché ─────────────────────────────────────────────
 
-// Devuelve el shader con ese nombre; lo crea y cachea si no existe.
 Shader*
 Shader::get(const string& name)
 {
-	// Crear el mapa la primera vez que se solicita un shader.
+	// Crear el mapa la primera vez que se solicita un shader
 	if (shaders == nullptr)
 		shaders = new map<string, unique_ptr<Shader>>();
 
@@ -125,14 +116,12 @@ Shader::get(const string& name)
 	if (it != shaders->end())
 		return it->second.get();
 
-	// Primera vez: compilar y almacenar en la caché.
+	// Primera vez: compilar y almacenar en la caché
 	Shader* shader = new Shader(name);
 	(*shaders)[name] = unique_ptr<Shader>(shader);
 	return shader;
 }
 
-// Envía el mismo uniform mat4 a todos los shaders activos.
-// Se usa principalmente para actualizar la matriz de proyección.
 void
 Shader::setUniform4All(const string& name, const glm::mat4& value)
 {
@@ -143,10 +132,7 @@ Shader::setUniform4All(const string& name, const glm::mat4& value)
 	}
 }
 
-// Destruye completamente la caché de shaders y libera su memoria del heap.
-// Al usar `delete shaders`, el objeto map desaparece totalmente antes de
-// que el CRT de MSVC ejecute _CrtDumpMemoryLeaks(), eliminando los leaks.
-// Llamar en IG1App::destroy() antes de glfwTerminate().
+// Destruye completamente la caché de shaders y libera su memoria del heap
 void
 Shader::freeAll()
 {

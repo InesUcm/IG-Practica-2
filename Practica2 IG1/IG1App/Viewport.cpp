@@ -8,15 +8,13 @@ void Viewport::setSize(GLsizei xw, GLsizei yh)
 }
 
 // Cambia la posición de la esquina inferior izquierda del viewport.
-// Útil para split-screen o renderizado en subbventanas.
 void Viewport::setPos(GLsizei xl, GLsizei yb)
 {
 	xLeft = xl;
 	yBot = yb;
 }
 
-// Llama a glViewport para aplicar la configuración actual en la GPU.
-// Define la transformación de coordenadas normalizadas (NDC) a píxeles.
+// Define el area de dibujo de la ventana en pixeles
 void Viewport::upload() const
 {
 	glViewport(xLeft, yBot, xWidth, yHeight);

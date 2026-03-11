@@ -4,17 +4,14 @@
 
 using namespace glm;
 
-// ── Cube ──────────────────────────────────────────────────────────────────────
+// CUBO
 
 Cube::Cube(GLdouble length)
 {
 	mMesh = Mesh::generateCube(length);
 }
 
-// Renderizado en dos pasadas con face culling para mostrar interior y exterior:
-//   1ª pasada — culling de cara trasera: se ven las caras frontales en WIREFRAME.
-//   2ª pasada — culling de cara frontal: se ven las caras traseras como PUNTOS.
-// Esto da el efecto de ver el cubo "por dentro y por fuera" a la vez.
+
 void Cube::render(const glm::mat4& modelViewMat) const
 {
 	if (mMesh == nullptr) return;
@@ -26,11 +23,11 @@ void Cube::render(const glm::mat4& modelViewMat) const
 
 	glEnable(GL_CULL_FACE);
 
-	glCullFace(GL_BACK);                          // descartar traseras → se ven frontales
+	glCullFace(GL_FRONT);                         
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);    // wireframe
 	mMesh->render();
 
-	glCullFace(GL_FRONT);                         // descartar frontales → se ven traseras
+	glCullFace(GL_BACK);                        
 	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);   // puntos
 	mMesh->render();
 
@@ -39,10 +36,8 @@ void Cube::render(const glm::mat4& modelViewMat) const
 	glDisable(GL_CULL_FACE);
 }
 
-// ── BoxOutline ────────────────────────────────────────────────────────────────
+//BOX OUTLINE
 
-// mTexture2 se inicializa a nullptr en la lista de inicialización para
-// garantizar que el destructor puede comprobarlo con seguridad.
 BoxOutline::BoxOutline(GLdouble length)
 	: mTexture2(nullptr)
 {
@@ -62,10 +57,7 @@ BoxOutline::~BoxOutline()
 	mTexture2 = nullptr;
 }
 
-// Dos pasadas con culling para separar interior y exterior de la caja:
-//   1ª — culling trasero desactivado (GL_FRONT): se ven caras traseras → EXTERIOR.
-//   2ª — culling frontal desactivado (GL_BACK):  se ven caras frontales → INTERIOR.
-// Se desactiva el blend para evitar heredar transparencia de objetos anteriores.
+
 void BoxOutline::render(const glm::mat4& modelViewMat) const
 {
 	if (mMesh == nullptr) return;
@@ -80,13 +72,13 @@ void BoxOutline::render(const glm::mat4& modelViewMat) const
 	glEnable(GL_CULL_FACE);
 
 	// Exterior: se descartan las caras frontales, se ven las traseras.
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
 	mTexture->bind();
 	mMesh->render();
 	mTexture->unbind();
 
 	// Interior: se descartan las caras traseras, se ven las frontales.
-	glCullFace(GL_BACK);
+	glCullFace(GL_FRONT);
 	mTexture2->bind();
 	mMesh->render();
 	mTexture2->unbind();
@@ -94,7 +86,7 @@ void BoxOutline::render(const glm::mat4& modelViewMat) const
 	glDisable(GL_CULL_FACE);
 }
 
-// ── Star3D ────────────────────────────────────────────────────────────────────
+// ESTRELLA
 
 Star3D::Star3D(GLdouble re, GLuint np, GLdouble h)
 {
@@ -104,38 +96,37 @@ Star3D::Star3D(GLdouble re, GLuint np, GLdouble h)
 	mTexture->load("..\\assets\\images\\rueda.png");
 }
 
-// Dos pasadas: cara frontal con la transformación actual, y cara trasera
-// rotada 180° en X para que ambas caras queden enfrentadas y visibles.
+
 void Star3D::render(const glm::mat4& modelViewMat) const
 {
-	if (mMesh == nullptr) return;
+	if (mMesh != nullptr) {
+		mShader->use();
+		mShader->setUniform("modulate", mModulate);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		if (mTexture != nullptr) mTexture->bind();
 
-	mShader->use();
-	mShader->setUniform("modulate", mModulate);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	if (mTexture != nullptr) mTexture->bind();
+		// estrella 1
+		glm::mat4 aMat1 = modelViewMat * mModelMat;
+		upload(aMat1);
+		mMesh->render();
 
-	// Cara frontal
-	upload(modelViewMat * mModelMat);
-	mMesh->render();
+		// estrella 2, rotada 180 grados sobre X para quedar enfrentada
+		glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1, 0, 0));
+		glm::mat4 aMat2 = modelViewMat * mModelMat * rotateMat;
+		upload(aMat2);
+		mMesh->render();
 
-	// Cara trasera: rotada 180° en X para estar enfrentada a la frontal.
-	mat4 flip = rotate(mat4(1.0f), radians(180.0f), vec3(1.0f, 0.0f, 0.0f));
-	upload(modelViewMat * mModelMat * flip);
-	mMesh->render();
-
-	if (mTexture != nullptr) mTexture->unbind();
+		if (mTexture != nullptr) mTexture->unbind();
+	}
 }
 
-// Animación combinada: giro propio sobre Z (rueda sobre su eje) y
-// giro orbital sobre Y (órbita alrededor del origen de la caja).
 void Star3D::update()
 {
-	mModelMat = rotate(mModelMat, radians(1.0f), vec3(0.0f, 0.0f, 1.0f));
-	mModelMat = rotate(mat4(1.0f), radians(0.5f), vec3(0.0f, 1.0f, 0.0f)) * mModelMat;
+	mModelMat = glm::rotate(mModelMat, glm::radians(1.0f), glm::vec3(0, 0, 1));
+	mModelMat = glm::rotate(mModelMat, glm::radians(0.5f), glm::vec3(0, 1, 0));
 }
 
-// ── GlassParapet ──────────────────────────────────────────────────────────────
+// GLASS PARAPET
 
 GlassParapet::GlassParapet(GLdouble length)
 {
@@ -145,31 +136,28 @@ GlassParapet::GlassParapet(GLdouble length)
 	mTexture->load("..\\assets\\images\\windowC.png", 200);
 }
 
-// Renderizado con blending alpha para transparencia:
-//   - glBlendFunc(SRC_ALPHA, 1-SRC_ALPHA): mezcla el cristal con lo que hay detrás.
-//   - glDepthMask(GL_FALSE): no escribir en el depth buffer para que los objetos
-//     detrás del cristal sigan siendo visibles correctamente.
-//   - Sin culling: se renderizan ambas caras del cristal.
+
 void GlassParapet::render(const glm::mat4& modelViewMat) const
 {
-	if (mMesh == nullptr) return;
+	if (mMesh != nullptr) {
+		mat4 aMat = modelViewMat * mModelMat;
+		mShader->use();
+		mShader->setUniform("modulate", mModulate);
+		upload(aMat);
 
-	mat4 aMat = modelViewMat * mModelMat;
-	mShader->use();
-	mShader->setUniform("modulate", mModulate);
-	upload(aMat);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //mezcla el cristal con lo que hay detrás
+		glDepthMask(GL_FALSE); // no escribir en z-buffer para que los objetos detrás del cristal sigan siendo visibles
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(GL_FALSE);               // no escribir en z-buffer
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDisable(GL_CULL_FACE);             // ambas caras visibles
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDisable(GL_CULL_FACE);
 
-	if (mTexture != nullptr) mTexture->bind();
-	mMesh->render();
-	if (mTexture != nullptr) mTexture->unbind();
+		if (mTexture != nullptr) mTexture->bind();
+		mMesh->render();
+		if (mTexture != nullptr) mTexture->unbind();
 
-	// Restaurar estado GL para que no afecte a objetos renderizados después.
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
+		// Restaurar estado GL para que no afecte a objetos renderizados después.
+		glDepthMask(GL_TRUE);
+		glDisable(GL_BLEND);
+	}
 }

@@ -13,6 +13,7 @@ public:
 	explicit Ground(GLdouble w, GLdouble h);
 };
 
+//La foto solo se actualiza si se ha movido la camara, de esta forma no se sobrecarga la GPU con la animacion de la estrella
 class Photo : public EntityWithTexture
 {
 public:
